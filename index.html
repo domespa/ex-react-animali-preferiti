@@ -44,79 +44,144 @@
       //   };
 
       // ------------------------------ MILESTONE 3 --------------------------- //
+      //   const { useState } = React;
+      //   const { createRoot } = ReactDOM;
+      //   function Modal({
+      //     title,
+      //     content,
+      //     show = false,
+      //     onClose = () => {},
+      //     onConfirm = () => {},
+      //   }) {
+      //     return (
+      //       show &&
+      //       ReactDOM.createPortal(
+      //         <div className="modal-container">
+      //           <div className="modal">
+      //             <h2>{title}</h2>
+      //             <p>{content}</p>
+      //             <button onClick={onClose}>Annulla</button>
+      //             <button onClick={onConfirm}>Aggiungi</button>
+      //           </div>
+      //         </div>,
+      //         document.body
+      //       )
+      //     );
+      //   }
+      //   const ReactApp = () => {
+      //     const [animals, setAnimals] = useState([]);
+      //     const [isModalOpen, setIsModalOpen] = useState(false);
+      //     const [newAnimal, setNewAnimal] = useState("");
+
+      //     const openModal = () => setIsModalOpen(true);
+      //     const closeModal = () => {
+      //       setIsModalOpen(false);
+      //       setNewAnimal("");
+      //     };
+      //   const addAnimal = () => {
+      //     if (newAnimal) {
+      //       setAnimals([...animals, newAnimal]);
+      //     }
+      //     closeModal();
+      //   };
+      //     const contMod = (
+      //       <input
+      //         type="text"
+      //         placeholder="Scrivi un animale"
+      //         value={newAnimal}
+      //         onChange={(e) => setNewAnimal(e.target.value)}
+      //       />
+      //     );
+      //     return (
+      //       <div>
+      //         <button onClick={openModal}>Aggiungi Aniamle</button>
+
+      //         <details>
+      //           <summary>Animali</summary>
+      //           <ul>
+      //             {animals.map((animal, i) => (
+      //               <li key={i}>{animal}</li>
+      //             ))}
+      //           </ul>
+      //         </details>
+      //         <Modal
+      //           title="Nuovo Animale"
+      //           content={contMod}
+      //           show={isModalOpen}
+      //           onClose={closeModal}
+      //           onConfirm={addAnimal}
+      //         />
+      //       </div>
+      //     );
+      //   };
+
+      // ------------------------------ BONUS --------------------------- //
+
       const { useState } = React;
       const { createRoot } = ReactDOM;
-      function Modal({
-        title,
-        content,
-        show = false,
-        onClose = () => {},
-        onConfirm = () => {},
-      }) {
+
+      function SearchBarAnimal() {
+        const [searchType, setSearchType] = useState("");
+        const [animals, setAnimals] = useState([]);
+        const [loading, setLoading] = useState(false);
+        const [err, setErr] = useState("");
+
+        const addAnimal = async () => {
+          setLoading(true);
+          setErr("");
+          try {
+            const resp = await fetch(
+              `https://boolean-spec-frontend.vercel.app/freetestapi/animals?search=${searchType}`
+            );
+            const obj = await resp.json();
+            if (obj.length === 0) {
+              setErr("Animale non trovato");
+            } else {
+              const animal = obj[0];
+              const animalObj = {
+                name: animal.name,
+                descr: animal.description || "Nome non disponibile",
+                image:
+                  animal.image ||
+                  "https://media.istockphoto.com/id/1396814518/vector/image-coming-soon-no-photo-no-thumbnail-image-available-vector-illustration.jpg?s=612x612&w=0&k=20&c=hnh2OZgQGhf0b46-J2z7aHbIWwq8HNlSDaNp2wn_iko=",
+              };
+              setAnimals([...animals, animalObj]);
+            }
+          } catch (err) {
+            setErr("Errore durante la ricerca");
+          }
+          setLoading(false);
+        };
         return (
-          show &&
-          ReactDOM.createPortal(
-            <div className="modal-container">
-              <div className="modal">
-                <h2>{title}</h2>
-                <p>{content}</p>
-                <button onClick={onClose}>Annulla</button>
-                <button onClick={onConfirm}>Aggiungi</button>
-              </div>
-            </div>,
-            document.body
-          )
+          <>
+            <div>
+              <h1>Ricerca Animali</h1>
+              <input
+                type="text"
+                placeholder="Inserisci il nome dell'animale"
+                value={searchType}
+                onChange={(e) => setSearchType(e.target.value)}
+              />
+              <button onClick={addAnimal}>Aggiungi</button>
+
+              {loading && <span>Caricamento in corso...</span>}
+              {err && <span>{err}</span>}
+
+              {animals.map((animal, i) => (
+                <div className="card-container" key={i}>
+                  <h3>{animal.name}</h3>
+                  <img src={animal.image} alt={animal.name} />
+                  <p>{animal.descr}</p>
+                </div>
+              ))}
+            </div>
+          </>
         );
       }
-      const ReactApp = () => {
-        const [animals, setAnimals] = useState([]);
-        const [isModalOpen, setIsModalOpen] = useState(false);
-        const [newAnimal, setNewAnimal] = useState("");
 
-        const openModal = () => setIsModalOpen(true);
-        const closeModal = () => {
-          setIsModalOpen(false);
-          setNewAnimal("");
-        };
-        const addAnimal = () => {
-          if (newAnimal) {
-            setAnimals([...animals, newAnimal]);
-          }
-          closeModal();
-        };
-        const contMod = (
-          <input
-            type="text"
-            placeholder="Scrivi un animale"
-            value={newAnimal}
-            onChange={(e) => setNewAnimal(e.target.value)}
-          />
-        );
-        return (
-          <div>
-            <button onClick={openModal}>Aggiungi Aniamle</button>
-
-            <details>
-              <summary>Animali</summary>
-              <ul>
-                {animals.map((animal, i) => (
-                  <li key={i}>{animal}</li>
-                ))}
-              </ul>
-            </details>
-            <Modal
-              title="Nuovo Animale"
-              content={contMod}
-              show={isModalOpen}
-              onClose={closeModal}
-              onConfirm={addAnimal}
-            />
-          </div>
-        );
-      };
       const listaAnimali = document.querySelector(".lista-animali");
       const root = createRoot(listaAnimali);
-      root.render(<ReactApp />);
+      root.render(<SearchBarAnimal />);
     </script>
   </head>
   <body>
